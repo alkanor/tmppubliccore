@@ -78,8 +78,19 @@ def default_ask_cli_boolean(boolean_accept_dict: Dict[str, bool] | None = None):
 @context_producer(('.interactor.ask', Callable[[...], str]), ('.interactor.ask_boolean', Callable[[...], bool]))
 @context_dependencies(('.interactor.local', bool, False), ('.interactor.cli', bool, False))  # dynamically generated
 def ask_to_interactor(ctxt: Context):
-    if ctxt['interactor']['local'] and ctxt['interactor']['type'] == 'cli':
-        ctxt['interactor']['ask'] = default_ask_cli
-        ctxt['interactor']['ask_boolean'] = default_ask_cli_boolean
-    else:
-        raise NotImplementedError
+    try:
+        if ctxt['interactor']['local'] and ctxt['interactor']['type'] == 'cli':
+            ctxt['interactor']['ask'] = default_ask_cli
+            ctxt['interactor']['ask_boolean'] = default_ask_cli_boolean
+        else:
+            raise NotImplementedError
+    except:
+        from core.core30_context.policy.common_contexts import load_local_context
+        from core.core31_policy.entrypoint.entrypoint import cli_entrypoint
+
+        load_local_context()
+        cli_entrypoint(at_least_one_action=True)
+
+        if ctxt['interactor']['local'] and ctxt['interactor']['type'] == 'cli':
+            ctxt['interactor']['ask'] = default_ask_cli
+            ctxt['interactor']['ask_boolean'] = default_ask_cli_boolean

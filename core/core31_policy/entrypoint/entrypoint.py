@@ -15,6 +15,8 @@ import regex
 import sys
 import os
 
+from ...core30_context.policy.common_contexts import load_local_context
+
 
 def parse_environment(env_regex):
     result = {}
@@ -91,3 +93,8 @@ def cli_entrypoint(ctxt: Context, at_least_one_action = False):
     if not at_least_one_action:
         no_action_parsed()
         return ctxt['interactor']['parsing_no_action']()
+
+
+def defaul_cli_init():
+    load_local_context()
+    cli_entrypoint(at_least_one_action=True)

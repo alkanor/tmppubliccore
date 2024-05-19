@@ -1,6 +1,6 @@
 from ...core31_policy.exception.strictness import raise_exception_from_string
 from ...core30_context.context_dependency_graph import context_dependencies
-from ...core99_misc.fakejq.utils import set_dict_against_attributes_string
+from ...core99_misc.fakejq.utils import set_dict_against_attributes_string, check_dict_against_attributes_string
 from ..config import Config, register_config_default, config_dependencies
 from .write_config import write_config
 from ...core30_context.context import Context
@@ -20,7 +20,7 @@ register_config_default('.config.missing_config', MissingConfigPolicy, MissingCo
 
 #@register_policy('.config.missing_config')
 @config_dependencies(('.config.missing_config', MissingConfigPolicy))  # ('.config_location', str) # not int config
-@context_dependencies(('.interactor.ask', Callable[[...], str]))
+@context_dependencies(('.interactor.ask', Callable[[...], str]), ('.config.config_location', str, False))
 def missing_config_policy(ctxt: Context, config: Config, missing_configs: List[str], func_name: str):
     missing_config = config['config']['missing_config'] if not isinstance(config['config']['missing_config'], str) \
         else getattr(MissingConfigPolicy, config['config']['missing_config'])
@@ -29,12 +29,17 @@ def missing_config_policy(ctxt: Context, config: Config, missing_configs: List[s
     elif missing_config == MissingConfigPolicy.ASK or missing_config == MissingConfigPolicy.ASK_AND_SAVE:
         filled = {}
         for missing_config_name in missing_configs:
-            filled[missing_config_name] = \
-                ctxt['interactor']['ask'](f"Configuration for item at {missing_config_name}? (for {func_name})", str)
+            test_in_context = check_dict_against_attributes_string(ctxt['config'], missing_config_name)
+            if test_in_context[0]:
+                filled[missing_config_name] = test_in_context[1]
+            else:
+                filled[missing_config_name] = \
+                    ctxt['interactor']['ask'](f"Configuration for item at {missing_config_name}? (for {func_name})", str)
         if missing_config == MissingConfigPolicy.ASK_AND_SAVE:
             for attr, value in filled.items():
                 set_dict_against_attributes_string(config, attr, value)
-            write_config(config, config['config_location'])
+            if 'config_location' in config:  # otherwise config not yet parsed
+                write_config(config, config.get('config_location'))
         return filled
     elif missing_config == MissingConfigPolicy.ASK_GROUP:
         filled = ctxt['interactor']['ask'](f"Configuration for missing items at {func_name}?", dict, missing_configs)

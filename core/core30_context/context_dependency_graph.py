@@ -116,8 +116,8 @@ class ThreadSafeDependencyManager:
                 if not self.context_nodes[key].get('dependencies_ok'):
                     assert not self.context_nodes[key]['dependencies_doing'], \
                         f"Cycle encountered at {key} for producing {self.context_nodes[key].get('products', '?')}"
-                    self.context_nodes[key][
-                        'dependencies_doing'] = True  # indicates we are walking on dependencies recursively
+                    # indicates we are walking on dependencies recursively
+                    self.context_nodes[key]['dependencies_doing'] = True
                     for dep in deps:
                         if len(dep) == 2:
                             attributes_string, expected_type = dep

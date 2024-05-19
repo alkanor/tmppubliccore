@@ -17,6 +17,10 @@ class SessionMixin:
     def query(cls):
         return cls.session.query(cls)
 
+    @classmethod
+    def query_for(cls, *args, **kwargs):
+        return cls.session.query(cls).filter(*args).filter_by(**kwargs)
+
     def save(self, commit=True):
         self.session.add(self)
         if commit:

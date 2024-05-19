@@ -53,7 +53,6 @@ def update_dict_check_already_there(ctxt: Context, config: Config,
                                     initial_dict: Dict[Any, Any], dict_to_merge_into: Dict[Any, Any],
                                     raise_if_strict: bool = False):
     common_keys = already_in_dict(initial_dict, dict_to_merge_into, raise_if_strict, no_print=True)
-
     if common_keys:
         ctxt['log']['main_logger'].info(f"Common keys {common_keys}, dict will be modified or"
                                         f" not according to config['misc']['update_dict_conflict'] = "
